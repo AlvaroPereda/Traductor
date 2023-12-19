@@ -1,0 +1,8 @@
+void main {
+ int a, b, c;
+ a = 1;
+ b = 2;
+ c = (25 * (2 + a)) / (2 * b);
+ int d = a + 2*b + c;
+ e = d * (2 + 3 * a);
+}
