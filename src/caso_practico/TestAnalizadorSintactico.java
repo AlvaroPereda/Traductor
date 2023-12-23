@@ -1,28 +1,28 @@
 package caso_practico;
 
+import java.nio.charset.StandardCharsets;
+
 public class TestAnalizadorSintactico {
 
 	public static void main(String[] args) {
 
 		boolean mostrarComponentesLexicos = false; // poner a false y no se quieren mostrar los tokens <id, a> ...
-
-		String expresion = "void main {int a, b, c, d; float x; float [10] v;}";
+		String expresion = "programa1.txt";
 
 		ComponenteLexico etiquetaLexica;
-		Lexico lexico = new Lexico(expresion);
+		Lexico lexico = new Lexico(expresion,StandardCharsets.UTF_8);
 
 		if (mostrarComponentesLexicos) {
 
 			do {
 				etiquetaLexica = lexico.getComponenteLexico();
 				System.out.println("<" + etiquetaLexica.toString() + ">");
-
 			} while (!etiquetaLexica.getEtiqueta().equals("end_program"));
 
 			System.out.println("");
 		}
 
-		AnalizadorSintactico compilador = new AnalizadorSintactico(new Lexico(expresion));
+		AnalizadorSintactico compilador = new AnalizadorSintactico(new Lexico(expresion,StandardCharsets.UTF_8));
 
 		System.out.println("Compilacion de sentencia de declaraciones de variables");
 		System.out.println(expresion + "\n");

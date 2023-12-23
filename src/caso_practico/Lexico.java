@@ -46,7 +46,7 @@ public class Lexico {
 		// al final del programa se añade el carácter 0 para indicar
 		// el final, cuando el analizador léxico encuentra este carácter
 		// devuelve el token “end_program”
-		this.programa = leeFichero(programa,charset) + programa + (char) (0);
+		this.programa = leeFichero(programa,charset) + (char) (0);
 	}
 	
 	public String leeFichero(String fichero,Charset charset) {
@@ -87,6 +87,7 @@ public class Lexico {
 	        return false;
 	    }
 	}
+
 
 	public int getLineas() {
 		return this.lineas;

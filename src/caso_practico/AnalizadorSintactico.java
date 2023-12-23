@@ -27,11 +27,16 @@ public class AnalizadorSintactico {
 	}
 	
 	
-	public void declaraciones() {	
-        if (componenteLexico.getEtiqueta().equals("int") || componenteLexico.getEtiqueta().equals("float")) {
-            declaracion();
-            declaraciones();
-        }
+	public void declaraciones() {
+		if (componenteLexico.getEtiqueta().equals("int") || componenteLexico.getEtiqueta().equals("float") || componenteLexico.getEtiqueta().equals("boolean")) {
+			declaracion();
+			declaraciones();
+		}
+		else if(!componenteLexico.getEtiqueta().equals("end_program")) 
+		{
+			this.componenteLexico = this.lexico.getComponenteLexico();
+			declaraciones();
+		}
 	}
 
 	public void declaracion() {
@@ -49,12 +54,15 @@ public class AnalizadorSintactico {
 
 	
 	public void tipo() {
-		if(this.componenteLexico.getEtiqueta().equals("int")) {
+		if (this.componenteLexico.getEtiqueta().equals("int")) {
 			this.tipo = "int";
 			compara("int");
-		}else if(this.componenteLexico.getEtiqueta().equals("float")){
+		} else if (this.componenteLexico.getEtiqueta().equals("float")) {
 			this.tipo = "float";
 			compara("float");
+		} else if (this.componenteLexico.getEtiqueta().equals("boolean")) {
+			this.tipo = "boolean";
+			compara("boolean");
 		}
 
 	}
@@ -71,6 +79,7 @@ public class AnalizadorSintactico {
         if (componenteLexico.getEtiqueta().equals("id")) {
             simbolos.put(componenteLexico.getValor(), tipo);
             componenteLexico = lexico.getComponenteLexico();
+        	asignacionDeclaracion();
             masIdentificadores();
         }
 	}
@@ -81,11 +90,84 @@ public class AnalizadorSintactico {
             if (componenteLexico.getEtiqueta().equals("id")) {
                 simbolos.put(componenteLexico.getValor(), tipo); 
                 componenteLexico = lexico.getComponenteLexico();
+                asignacionDeclaracion();
                 masIdentificadores();
             }
         }
 	}
 
+	public void asignacionDeclaracion() {
+        if (componenteLexico.getEtiqueta().equals("assignment")) {
+            compara("assignment");
+            expresionLogica();
+        }
+	}
+	
+	public void expresionLogica() {
+	    terminoLogico();
+	    if (componenteLexico.getEtiqueta().equals("or")) {
+	        compara("or");
+	        terminoLogico();
+	    }
+	}
+
+	public void terminoLogico() {
+	    factorLogico();
+	    if (componenteLexico.getEtiqueta().equals("and")) {
+	        compara("and");
+	        factorLogico();
+	    }
+	}
+
+	public void factorLogico() {
+	    if (componenteLexico.getEtiqueta().equals("not")) {
+	        compara("not");
+	        factorLogico();
+	    } else if (componenteLexico.getEtiqueta().equals("true") || componenteLexico.getEtiqueta().equals("false")) {
+	        compara(componenteLexico.getEtiqueta());
+	    } else {
+	        expresionRelacional();
+	    }
+	}
+    public void expresionRelacional() {
+        expresion();
+        if (componenteLexico.getEtiqueta().equals("greater_than") ||
+            componenteLexico.getEtiqueta().equals("greater_equals") ||
+            componenteLexico.getEtiqueta().equals("less_than") ||
+            componenteLexico.getEtiqueta().equals("less_equals") ||
+            componenteLexico.getEtiqueta().equals("equals") ||
+            componenteLexico.getEtiqueta().equals("not_equals")) {
+            
+            compara(componenteLexico.getEtiqueta());
+            expresion();
+        }
+    }
+    
+    public void expresion() {
+        termino();
+        while (componenteLexico.getEtiqueta().equals("add") || componenteLexico.getEtiqueta().equals("subtract")) {
+            compara(componenteLexico.getEtiqueta());
+            termino();
+        }
+    }
+    public void termino() {
+        factor();
+        while (componenteLexico.getEtiqueta().equals("multiply") || componenteLexico.getEtiqueta().equals("divide") || componenteLexico.getEtiqueta().equals("remainder")) {
+            compara(componenteLexico.getEtiqueta());
+            factor();
+        }
+    }
+    public void factor() {
+        if (componenteLexico.getEtiqueta().equals("open_parenthesis")) {
+            compara("open_parenthesis");
+            expresion();
+            compara("closed_parenthesis");
+        } else if (componenteLexico.getEtiqueta().equals("id") || componenteLexico.getEtiqueta().equals("int") || componenteLexico.getEtiqueta().equals("float")) {
+            compara(componenteLexico.getEtiqueta());
+        }
+    }
+
+	
 	public void compara(String token){
 		if(this.componenteLexico.getEtiqueta().equals(token)) {
 			this.componenteLexico = this.lexico.getComponenteLexico();
