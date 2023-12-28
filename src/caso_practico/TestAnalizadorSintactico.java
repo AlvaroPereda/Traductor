@@ -7,8 +7,8 @@ public class TestAnalizadorSintactico {
 	public static void main(String[] args) {
 
 		boolean mostrarComponentesLexicos = false; // poner a false y no se quieren mostrar los tokens <id, a> ...
-		String expresion = "programa1.txt";
-
+		String expresion = "programa6.txt";
+		
 		ComponenteLexico etiquetaLexica;
 		Lexico lexico = new Lexico(expresion,StandardCharsets.UTF_8);
 
@@ -18,14 +18,12 @@ public class TestAnalizadorSintactico {
 				etiquetaLexica = lexico.getComponenteLexico();
 				System.out.println("<" + etiquetaLexica.toString() + ">");
 			} while (!etiquetaLexica.getEtiqueta().equals("end_program"));
-
 			System.out.println("");
 		}
 
 		AnalizadorSintactico compilador = new AnalizadorSintactico(new Lexico(expresion,StandardCharsets.UTF_8));
 
-		System.out.println("Compilacion de sentencia de declaraciones de variables");
-		System.out.println(expresion + "\n");
+		System.out.println(expresion + " compilado perfectamente\n");
 
 		compilador.analisisSintactico();
 

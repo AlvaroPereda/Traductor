@@ -64,10 +64,35 @@ public class Lexico {
 	}
 
 	private char extraeCaracter() {
-		return this.programa.charAt(this.posicion++);
+	        this.caracter = this.programa.charAt(this.posicion++);
+
+	        if (this.caracter == '/') {
+	            char aux = extraeCaracter();
+	            if (aux == '/') {
+	                while (this.caracter != '\n') {
+	                    this.caracter = extraeCaracter();
+	                    
+	                }
+	            } else if (aux == '*') {
+	            	char previo = this.caracter;
+	            	this.caracter = extraeCaracter();
+	                while (!(previo == '*' && this.caracter == '/')) {
+		            	previo = this.caracter;
+	                    this.caracter = extraeCaracter();
+	                }
+	                this.caracter = extraeCaracter();
+	            }else {
+	                devuelveCaracter();
+	                this.caracter = '/';
+	            }
+                
+	        } 
+
+	        
+	        return this.caracter;
 	}
 
-	private void devuelveCaracter() {
+	public void devuelveCaracter() {
 		this.posicion--;
 	}
 
@@ -86,9 +111,8 @@ public class Lexico {
 	        devuelveCaracter();
 	        return false;
 	    }
-	}
-
-
+	}	
+	
 	public int getLineas() {
 		return this.lineas;
 	}
@@ -149,7 +173,7 @@ public class Lexico {
 				return new ComponenteLexico((String) this.palabrasReservadas.getLexema(lexema));	
 			else
 				return new ComponenteLexico("id", lexema);
-		}
+		}		
 		// operadores aritméticos, relacionales, lógicos y
 		// caracteres delimitadores
 		// operadores aritméticos, relacionales, lógicos

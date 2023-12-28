@@ -14,8 +14,10 @@ subtract -
 multiply *	
 divide /	
 remainder %	
-// Operadores lógicos
+// Operadores lógicos	
+bitwise_and &	
 and &&	
+bitwise_or |	
 or ||	
 not !	
 // Delimitadores
@@ -43,3 +45,4 @@ while while
 true true	
 void void	
 main main	
+print print	

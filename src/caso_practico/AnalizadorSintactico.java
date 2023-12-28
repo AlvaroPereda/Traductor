@@ -23,6 +23,7 @@ public class AnalizadorSintactico {
 		compara("main");
 		compara("open_bracket");
 		declaraciones();
+		instrucciones();
 		compara("closed_bracket");
 	}
 	
@@ -30,11 +31,6 @@ public class AnalizadorSintactico {
 	public void declaraciones() {
 		if (componenteLexico.getEtiqueta().equals("int") || componenteLexico.getEtiqueta().equals("float") || componenteLexico.getEtiqueta().equals("boolean")) {
 			declaracion();
-			declaraciones();
-		}
-		else if(!componenteLexico.getEtiqueta().equals("end_program")) 
-		{
-			this.componenteLexico = this.lexico.getComponenteLexico();
 			declaraciones();
 		}
 	}
@@ -81,7 +77,7 @@ public class AnalizadorSintactico {
             componenteLexico = lexico.getComponenteLexico();
         	asignacionDeclaracion();
             masIdentificadores();
-        }
+        }	
 	}
 
 	public void masIdentificadores() {
@@ -95,6 +91,65 @@ public class AnalizadorSintactico {
             }
         }
 	}
+    public void instrucciones() {
+        if(!componenteLexico.getEtiqueta().equals("closed_bracket") && !componenteLexico.getEtiqueta().equals("end_program")) {
+            instruccion();
+            instrucciones();
+        }
+    }
+    public void instruccion() {
+        if (componenteLexico.getEtiqueta().equals("int") || componenteLexico.getEtiqueta().equals("float") || componenteLexico.getEtiqueta().equals("boolean")) {
+        	declaracion();
+        } else if (componenteLexico.getEtiqueta().equals("id")) {
+            variable();
+            compara("assignment");
+            expresionLogica();
+            compara("semicolon");
+        } else if (componenteLexico.getEtiqueta().equals("if")) {
+            compara("if");
+            compara("open_parenthesis");
+            expresionLogica();
+            compara("closed_parenthesis");
+            instruccion();
+            if (componenteLexico.getEtiqueta().equals("else")) {
+                compara("else");
+                instruccion();
+            }
+        } else if (componenteLexico.getEtiqueta().equals("while")) {
+            compara("while");
+            compara("open_parenthesis");
+            expresionLogica();
+            compara("closed_parenthesis");
+            instruccion();
+        } else if (componenteLexico.getEtiqueta().equals("do")) {
+            compara("do");
+            instruccion();
+            compara("while");
+            compara("open_parenthesis");
+            expresionLogica();
+            compara("closed_parenthesis");
+            compara("semicolon");
+        } else if (componenteLexico.getEtiqueta().equals("print")) {
+            compara("print");
+            compara("open_parenthesis");
+            variable();
+            compara("closed_parenthesis");
+            compara("semicolon");
+        } else if (componenteLexico.getEtiqueta().equals("open_bracket")) {
+            compara("open_bracket");
+            instrucciones();
+            compara("closed_bracket");
+        }
+    }
+    
+    public void variable() {
+        compara("id");
+        if (componenteLexico.getEtiqueta().equals("open_square_bracket")) {
+            compara("open_square_bracket");
+            expresion();
+            compara("closed_square_bracket");
+        }
+    }
 
 	public void asignacionDeclaracion() {
         if (componenteLexico.getEtiqueta().equals("assignment")) {
@@ -145,16 +200,18 @@ public class AnalizadorSintactico {
     
     public void expresion() {
         termino();
-        while (componenteLexico.getEtiqueta().equals("add") || componenteLexico.getEtiqueta().equals("subtract")) {
+        if (componenteLexico.getEtiqueta().equals("add") || componenteLexico.getEtiqueta().equals("subtract")) {
             compara(componenteLexico.getEtiqueta());
             termino();
+            expresion();
         }
     }
     public void termino() {
         factor();
-        while (componenteLexico.getEtiqueta().equals("multiply") || componenteLexico.getEtiqueta().equals("divide") || componenteLexico.getEtiqueta().equals("remainder")) {
+        if(componenteLexico.getEtiqueta().equals("multiply") || componenteLexico.getEtiqueta().equals("divide") || componenteLexico.getEtiqueta().equals("remainder")) {
             compara(componenteLexico.getEtiqueta());
             factor();
+            termino();
         }
     }
     public void factor() {
@@ -162,8 +219,10 @@ public class AnalizadorSintactico {
             compara("open_parenthesis");
             expresion();
             compara("closed_parenthesis");
-        } else if (componenteLexico.getEtiqueta().equals("id") || componenteLexico.getEtiqueta().equals("int") || componenteLexico.getEtiqueta().equals("float")) {
+        } else if (componenteLexico.getEtiqueta().equals("int") || componenteLexico.getEtiqueta().equals("float")) {
             compara(componenteLexico.getEtiqueta());
+        } else if (componenteLexico.getEtiqueta().equals("id")) {
+        	variable();
         }
     }
 
