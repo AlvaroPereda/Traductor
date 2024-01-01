@@ -70,14 +70,16 @@ public class Lexico {
 	            char aux = extraeCaracter();
 	            if (aux == '/') {
 	                while (this.caracter != '\n') {
-	                    this.caracter = extraeCaracter();
-	                    
+	                    this.caracter = extraeCaracter();	                    
 	                }
 	            } else if (aux == '*') {
 	            	char previo = this.caracter;
 	            	this.caracter = extraeCaracter();
 	                while (!(previo == '*' && this.caracter == '/')) {
 		            	previo = this.caracter;
+		                if (this.caracter == '\n') {
+		                    this.lineas++;
+		                }
 	                    this.caracter = extraeCaracter();
 	                }
 	                this.caracter = extraeCaracter();
@@ -160,12 +162,12 @@ public class Lexico {
 			return new ComponenteLexico("float", numero);
 		}
 		// identificadores y palabras reservadas
-		if (Character.isLetter(this.caracter)) {
+		if (Character.isLetter(this.caracter) || this.caracter == '_') {
 			String lexema = "";
 			do {
 				lexema = lexema + this.caracter;
 				this.caracter = extraeCaracter();
-			} while (Character.isLetterOrDigit(this.caracter));
+			} while (Character.isLetterOrDigit(this.caracter) || this.caracter == '_');
 
 			devuelveCaracter();
 			String etiqueta = this.palabrasReservadas.getEtiqueta(lexema);

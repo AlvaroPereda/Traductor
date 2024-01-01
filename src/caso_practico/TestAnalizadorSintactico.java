@@ -7,7 +7,7 @@ public class TestAnalizadorSintactico {
 	public static void main(String[] args) {
 
 		boolean mostrarComponentesLexicos = false; // poner a false y no se quieren mostrar los tokens <id, a> ...
-		String expresion = "programa6.txt";
+		String expresion = "programa1.txt";
 		
 		ComponenteLexico etiquetaLexica;
 		Lexico lexico = new Lexico(expresion,StandardCharsets.UTF_8);

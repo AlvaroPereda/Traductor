@@ -11,6 +11,7 @@ public class AnalizadorSintactico {
 	private Hashtable<String,String> simbolos;
 	private String tipo;
 	private int tamano;
+	private String valor;
 
 	public AnalizadorSintactico(Lexico lexico) {
 		this.lexico = lexico;
@@ -39,10 +40,16 @@ public class AnalizadorSintactico {
 		tipo();
 		if(componenteLexico.getEtiqueta().equals("open_square_bracket")) {
 			vector();
+			if(variableDeclarada(componenteLexico.getValor()))
+				System.out.println("Error en la linea " + lexico.getLineas() + ", identificador '" + componenteLexico.getValor() + "' ya declarado");
+
 	        simbolos.put(this.componenteLexico.getValor(), this.tipo);
 	        compara("id");
 		}
 		else {
+			if(variableDeclarada(componenteLexico.getValor()))
+				System.out.println("Error en la linea " + lexico.getLineas() + ", identificador '" + componenteLexico.getValor() + "' ya declarado");
+			valor = componenteLexico.getValor();
 			identificadores();
 		}
 		compara("semicolon");
@@ -66,6 +73,7 @@ public class AnalizadorSintactico {
 	public void vector() {
 		compara("open_square_bracket");
 		tamano = Integer.parseInt(componenteLexico.getValor());
+		valor = tipo;
 		tipo = "array (" + tipo + ", " + tamano + ")";
 		compara("int");
 		compara("closed_square_bracket");
@@ -101,9 +109,14 @@ public class AnalizadorSintactico {
         if (componenteLexico.getEtiqueta().equals("int") || componenteLexico.getEtiqueta().equals("float") || componenteLexico.getEtiqueta().equals("boolean")) {
         	declaracion();
         } else if (componenteLexico.getEtiqueta().equals("id")) {
+            if (!valor.equals("int") && !valor.equals("float") && !valor.equals("boolean")) {
+                valor = componenteLexico.getValor();
+            }
+        	if (!variableDeclarada(componenteLexico.getValor()))
+        		System.out.println("Error en la linea " + lexico.getLineas() + ", identificador '" + componenteLexico.getValor() + "' no declarado");
+        	
             variable();
-            compara("assignment");
-            expresionLogica();
+            asignacionDeclaracion();
             compara("semicolon");
         } else if (componenteLexico.getEtiqueta().equals("if")) {
             compara("if");
@@ -154,6 +167,7 @@ public class AnalizadorSintactico {
 	public void asignacionDeclaracion() {
         if (componenteLexico.getEtiqueta().equals("assignment")) {
             compara("assignment");
+        	variablesIncompatibles(valor);
             expresionLogica();
         }
 	}
@@ -186,16 +200,21 @@ public class AnalizadorSintactico {
 	}
     public void expresionRelacional() {
         expresion();
-        if (componenteLexico.getEtiqueta().equals("greater_than") ||
-            componenteLexico.getEtiqueta().equals("greater_equals") ||
-            componenteLexico.getEtiqueta().equals("less_than") ||
-            componenteLexico.getEtiqueta().equals("less_equals") ||
-            componenteLexico.getEtiqueta().equals("equals") ||
-            componenteLexico.getEtiqueta().equals("not_equals")) {
-            
+        if (operadorRelacional()) {            
             compara(componenteLexico.getEtiqueta());
             expresion();
         }
+    }
+    public boolean operadorRelacional() {
+        if (componenteLexico.getEtiqueta().equals("greater_than") ||
+                componenteLexico.getEtiqueta().equals("greater_equals") ||
+                componenteLexico.getEtiqueta().equals("less_than") ||
+                componenteLexico.getEtiqueta().equals("less_equals") ||
+                componenteLexico.getEtiqueta().equals("equals") ||
+                componenteLexico.getEtiqueta().equals("not_equals")) {
+        	return true;
+        }
+        return false;
     }
     
     public void expresion() {
@@ -244,7 +263,37 @@ public class AnalizadorSintactico {
 			simbolos = simbolos + "<'" + m.getKey() + "', " +
 					m.getValue() + "> \n";
 		}
-
 		return simbolos;
+	}
+	
+	public boolean variableDeclarada(String variable) {
+		return simbolos.containsKey(variable);
+	}
+	public void variablesIncompatibles(String variable) {
+		if (!variable.equals("int") && !variable.equals("float") && !variable.equals("boolean")) {
+			String aux = recorrerHastable(variable);
+			if(componenteLexico.getEtiqueta().equals("int") || componenteLexico.getEtiqueta().equals("float") || componenteLexico.getEtiqueta().equals("boolean") ) {
+				if(!componenteLexico.getEtiqueta().equals(aux)) {
+					System.out.println("Error en la linea " + lexico.getLineas() +", incompatibilidad de tipos en la instrucción de asignación");
+				}
+			} else if(componenteLexico.getEtiqueta().equals("id")) {
+				String aux2 = recorrerHastable(componenteLexico.getValor());
+				if(aux != aux2) {
+					System.out.println("Error en la linea " + lexico.getLineas() +", incompatibilidad de tipos en la instrucción de asignación");
+				}
+			}
+		} else {
+			if(!componenteLexico.getEtiqueta().equals(variable)) {
+				System.out.println("Error en la linea " + lexico.getLineas() +", incompatibilidad de tipos en la instrucción de asignación");
+			}
+		}
+	}
+	public String recorrerHastable(String valor) {
+	    for (Map.Entry<String, String> aux: simbolos.entrySet()) {
+	        if(aux.getKey().equals(valor)) {
+	        	return aux.getValue();
+	        }
+	    }
+	    return null;
 	}
 }
