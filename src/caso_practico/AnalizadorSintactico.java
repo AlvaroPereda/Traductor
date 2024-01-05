@@ -72,7 +72,15 @@ public class AnalizadorSintactico {
 
 	public void vector() {
 		compara("open_square_bracket");
-		tamano = Integer.parseInt(componenteLexico.getValor());
+		try {
+			tamano = Integer.parseInt(componenteLexico.getValor());
+		} catch(NumberFormatException e) {
+			System.out.println("El tamano del array debe ser un int");
+			throw e;
+		} catch(Exception e) {
+			System.out.println(e);
+			throw e;
+		}
 		valor = tipo;
 		tipo = "array (" + tipo + ", " + tamano + ")";
 		compara("int");
