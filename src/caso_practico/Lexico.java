@@ -8,11 +8,6 @@ import java.nio.file.Paths;
 
 public class Lexico {
 
-	// palabrasReservadas: tabla Hash de palabras reservadas
-	// posicion: posición del carácter actual
-	// lineas: número de líneas del programa
-	// caracter: carácter actual devuelto por extraeCaracter()
-	// programa: código fuente del programa
 	private PalabrasReservadas palabrasReservadas;
 	private int posicion;
 	private int lineas;
@@ -89,8 +84,6 @@ public class Lexico {
 	            }
                 
 	        } 
-
-	        
 	        return this.caracter;
 	}
 
