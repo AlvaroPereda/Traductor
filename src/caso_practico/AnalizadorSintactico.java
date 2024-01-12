@@ -3,6 +3,8 @@ package caso_practico;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
+
 
 public class AnalizadorSintactico {
 
@@ -12,11 +14,13 @@ public class AnalizadorSintactico {
 	private String tipo;
 	private int tamano;
 	private String valor;
+    private Stack<String> pila;
 
 	public AnalizadorSintactico(Lexico lexico) {
 		this.lexico = lexico;
 		this.componenteLexico = this.lexico.getComponenteLexico();
 		this.simbolos = new Hashtable<String,String>();
+		this.pila = new Stack<String>();	
 	}
 
 	public void analisisSintactico() {
@@ -26,6 +30,7 @@ public class AnalizadorSintactico {
 		declaraciones();
 		instrucciones();
 		compara("closed_bracket");
+		pila.push("halt");
 	}
 	
 	
@@ -49,6 +54,9 @@ public class AnalizadorSintactico {
 		else {
 			if(variableDeclarada(componenteLexico.getValor()))
 				System.out.println("Error en la linea " + lexico.getLineas() + ", identificador '" + componenteLexico.getValor() + "' ya declarado");
+			
+			pila.push("lvalue " + componenteLexico.getValor());//.........................................
+			
 			valor = componenteLexico.getValor();
 			identificadores();
 		}
@@ -90,6 +98,9 @@ public class AnalizadorSintactico {
 	public void identificadores() {
         if (componenteLexico.getEtiqueta().equals("id")) {
             simbolos.put(componenteLexico.getValor(), tipo);
+            
+            //valorPila = componenteLexico.getValor();
+            
             componenteLexico = lexico.getComponenteLexico();
         	asignacionDeclaracion();
             masIdentificadores();
@@ -100,7 +111,10 @@ public class AnalizadorSintactico {
         if (componenteLexico.getEtiqueta().equals("comma")) {
             compara("comma");
             if (componenteLexico.getEtiqueta().equals("id")) {
-                simbolos.put(componenteLexico.getValor(), tipo); 
+                simbolos.put(componenteLexico.getValor(), tipo);
+                
+                pila.push("lvalue " + componenteLexico.getValor());//.........................................	
+                
                 componenteLexico = lexico.getComponenteLexico();
                 asignacionDeclaracion();
                 masIdentificadores();
@@ -137,6 +151,7 @@ public class AnalizadorSintactico {
                 instruccion();
             }
         } else if (componenteLexico.getEtiqueta().equals("while")) {
+        	pila.push("label_0:");
             compara("while");
             compara("open_parenthesis");
             expresionLogica();
@@ -153,12 +168,15 @@ public class AnalizadorSintactico {
         } else if (componenteLexico.getEtiqueta().equals("print")) {
             compara("print");
             compara("open_parenthesis");
+        	pila.push("print " + componenteLexico.getValor());
             variable();
             compara("closed_parenthesis");
             compara("semicolon");
         } else if (componenteLexico.getEtiqueta().equals("open_bracket")) {
+        	pila.push("label_0:");
             compara("open_bracket");
             instrucciones();
+            pila.push("label_1:");
             compara("closed_bracket");
         }
     }
@@ -174,9 +192,11 @@ public class AnalizadorSintactico {
 
 	public void asignacionDeclaracion() {
         if (componenteLexico.getEtiqueta().equals("assignment")) {
+        	String aux = componenteLexico.getEtiqueta();
             compara("assignment");
         	variablesIncompatibles(valor);
             expresionLogica();
+            variablesPila(aux);
         }
 	}
 	
@@ -209,8 +229,10 @@ public class AnalizadorSintactico {
     public void expresionRelacional() {
         expresion();
         if (operadorRelacional()) {            
+        	String aux = componenteLexico.getEtiqueta();
             compara(componenteLexico.getEtiqueta());
             expresion();
+            variablesPila(aux);
         }
     }
     public boolean operadorRelacional() {
@@ -228,17 +250,23 @@ public class AnalizadorSintactico {
     public void expresion() {
         termino();
         if (componenteLexico.getEtiqueta().equals("add") || componenteLexico.getEtiqueta().equals("subtract")) {
+        	String aux = componenteLexico.getEtiqueta();
             compara(componenteLexico.getEtiqueta());
             termino();
             expresion();
+            variablesPila(aux);
         }
     }
     public void termino() {
         factor();
         if(componenteLexico.getEtiqueta().equals("multiply") || componenteLexico.getEtiqueta().equals("divide") || componenteLexico.getEtiqueta().equals("remainder")) {
-            compara(componenteLexico.getEtiqueta());
+           
+        	String aux = componenteLexico.getEtiqueta();
+        	
+        	compara(componenteLexico.getEtiqueta());
             factor();
             termino();
+            variablesPila(aux);
         }
     }
     public void factor() {
@@ -247,8 +275,20 @@ public class AnalizadorSintactico {
             expresion();
             compara("closed_parenthesis");
         } else if (componenteLexico.getEtiqueta().equals("int") || componenteLexico.getEtiqueta().equals("float")) {
+        	
+        	pila.push("push " + componenteLexico.getValor());
+        	
             compara(componenteLexico.getEtiqueta());
         } else if (componenteLexico.getEtiqueta().equals("id")) {
+        	
+            String variable = componenteLexico.getValor();
+            String tipoVariable = recorrerHastable(variable);
+
+            if (tipoVariable.equals("int") || tipoVariable.equals("float")) {
+            	
+            	pila.push("rvalue " + componenteLexico.getValor());
+            }
+        	
         	variable();
         }
     }
@@ -304,4 +344,59 @@ public class AnalizadorSintactico {
 	    }
 	    return null;
 	}
+	
+
+    public void mostrarPila() {
+        System.out.println("Codigo de la maquina de pila\n");
+
+        if (pila.isEmpty()) {
+            System.out.println("La pila está vacía.");
+        } else {
+            for (String aux : pila) {
+                System.out.println(aux);
+            }
+        }
+    }
+    
+    private void variablesPila(String token) {
+    	switch (token) {
+    	case "assignment":
+    		pila.push("=");
+    		break;
+    	case "add":
+    		pila.push("+");
+    		break;
+    	case "subtract":
+    		pila.push("-");
+    		break;
+    	case "multiply":
+    		pila.push("*");
+    		break;
+    	case "divide":
+    		pila.push("/");
+    		break;
+    	case "greater_than":
+            pila.push(">");
+            break;
+        case "greater_equals":
+            pila.push(">=");
+            break;
+        case "less_than":
+            pila.push("<");
+            break;
+        case "less_equals":
+            pila.push("<=");
+            break;
+        case "equals":
+            pila.push("==");
+            break;
+        case "not_equals":
+            pila.push("!=");
+            break;
+		default:
+			pila.push("Invalid_character");
+    	}
+    		
+    }
+    
 }
