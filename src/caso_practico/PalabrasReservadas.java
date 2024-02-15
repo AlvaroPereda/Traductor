@@ -62,10 +62,7 @@ public class PalabrasReservadas {
 					if (componenteLexico.length() > 0 && componenteLexico.charAt(0) != '/') {
 						lexema = lexema(componenteLexico);
 						etiquetaLexica = etiqueta(componenteLexico);
-						//System.out.println("L:" + lexema);
-
-						PalabrasReservadas.put(lexema, etiquetaLexica);
-						
+						PalabrasReservadas.put(lexema, etiquetaLexica);	
 					}
 				}
 				
